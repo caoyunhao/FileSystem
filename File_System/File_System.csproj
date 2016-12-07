@@ -46,22 +46,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="FileSystem\FileBase\MyFileList\FileList.cs" />
+    <Compile Include="FileSystem\FileBase\MyFileList\IFileList.cs" />
+    <Compile Include="FileSystem\FileBase\MyFile\File.cs" />
+    <Compile Include="FileSystem\FileBase\MyFile\FileType.cs" />
+    <Compile Include="FileSystem\FileBase\MyFile\FolderFile.cs" />
+    <Compile Include="FileSystem\FileBase\MyFile\IFile.cs" />
+    <Compile Include="FileSystem\FileBase\MyFile\TextFile.cs" />
+    <Compile Include="FileSystem\FileBase\MyPathList\IPathList.cs" />
+    <Compile Include="FileSystem\FileBase\MyPathList\PathList.cs" />
+    <Compile Include="FileSystem\MyForm\IForm.cs" />
+    <Compile Include="FileSystem\MyIterator\FileIterator.cs" />
+    <Compile Include="FileSystem\MyIterator\Iterator.cs" />
+    <Compile Include="FileSystem\MyIterator\PathIterator.cs" />
+    <Compile Include="FileSystem\SystemController\ISystemController.cs" />
+    <Compile Include="FileSystem\SystemController\SystemController.cs" />
+    <Compile Include="FileSystem\MyForm\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
+    <Compile Include="FileSystem\MyForm\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MyFile.cs" />
-    <Compile Include="文本文档.cs">
+    <Compile Include="FileSystem\MyForm\文本文档.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="文本文档.Designer.cs">
+    <Compile Include="FileSystem\MyForm\文本文档.Designer.cs">
       <DependentUpon>文本文档.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Form1.resx">
+    <EmbeddedResource Include="FileSystem\MyForm\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -73,7 +88,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="文本文档.resx">
+    <EmbeddedResource Include="FileSystem\MyForm\文本文档.resx">
       <DependentUpon>文本文档.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">

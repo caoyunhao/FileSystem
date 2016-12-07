@@ -1,4 +1,5 @@
-﻿using System;
+﻿using File_System.FileSystem.SystemController;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,11 @@ namespace File_System {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            //Application.Run(new Form1());
+
+            SystemController sysCtrl = SystemController.GetInstance();
+            sysCtrl.ReadBinFile();
+
         }
     }
 }
