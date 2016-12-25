@@ -1,5 +1,5 @@
 ﻿namespace File_System {
-    partial class 文本文档 {
+    partial class Form2 {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -97,7 +97,7 @@
             this.textBox1.Size = new System.Drawing.Size(827, 587);
             this.textBox1.TabIndex = 1;
             // 
-            // 文本文档
+            // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -107,7 +107,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
-            this.Name = "文本文档";
+            this.Name = "Form2";
             this.Text = "文本文档";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.文本文档_FormClosing);
             this.menuStrip1.ResumeLayout(false);

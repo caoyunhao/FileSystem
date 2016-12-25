@@ -17,534 +17,17 @@ using File_System.FileSystem.MyIterator;
 
 namespace File_System {
 
-    public partial class Form1 : Form, IForm {
-        /*
-                private const string FILE_NAME = "MyFile.bin";
-                /// <summary>
-                /// 全部文件List
-                /// </summary>
-                public static List<MyFile> ALL_FILE_LIST = new List<MyFile>();
-                /// <summary>
-                /// 被选择的树节点
-                /// </summary>
-                private TreeNode SELECT_NODE = new TreeNode();
-                /// <summary>
-                /// 被展开的节点List
-                /// </summary>
-                private List<string> ALL_EXPANDED_LIST = new List<string>();
-                /// <summary>
-                /// 后退路径集合
-                /// </summary>
-                private Stack<string> HISTORY_PATH = new Stack<string>();
-                /// <summary>
-                /// 前进路径集合
-                /// </summary>
-                private Stack<string> FUTURE_PATH = new Stack<string>();
-                /// <summary>
-                /// 粘贴板
-                /// </summary>
-                private List<MyFile> CLIPBOARD = new List<MyFile>();
-
-
-
-                /// <summary>
-                /// 读二进制文件
-                /// </summary>
-                /// <param name="file_name"></param>
-                /// <param name="file_list"></param>
-                /// <returns></returns>
-                private List<MyFile> ReadBinFile(string file_name, out List<MyFile> file_list) {
-                    file_list = new List<MyFile>();
-                    BinaryFormatter bf = new BinaryFormatter();
-                    Stream st = new FileStream(file_name, FileMode.Open);
-                    do {
-                        if (st.Position == st.Length)
-                            break;
-                        MyFile my_file = bf.Deserialize(st) as MyFile;
-                        file_list.Add(my_file);
-                        continue;
-                    } while (true);
-                    st.Close();
-                    return file_list;
-                }
-
-                /// <summary>
-                /// 写二进制文件
-                /// </summary>
-                /// <param name="file_name"></param>
-                /// <param name="file_list"></param>
-                private void WriteBinFile(string file_name, List<MyFile> file_list) {
-                    BinaryFormatter bf = new BinaryFormatter();
-                    Stream st = new FileStream(file_name, FileMode.Create, FileAccess.Write, FileShare.None);
-                    foreach (MyFile a_file in file_list) {
-                        bf.Serialize(st, a_file);
-                    }
-                    st.Close();
-                }
-
-                /// <summary>
-                /// 文件转换成TreeNode
-                /// </summary>
-                /// <param name="my_file"></param>
-                /// <returns></returns>
-                private TreeNode FileToTreeNode(MyFile my_file) {
-                    TreeNode treeNode = new TreeNode();
-                    string parent_index = my_file.index;
-                    treeNode.Text = my_file.name;
-                    treeNode.Name = my_file.index;
-                    if (my_file.isFolder) {
-                        if (my_file.elementIndex.Count > 0) {
-                            var i = 0;
-                            var temp_index = new List<string>();
-                            var temp_list = my_file.GetElementCollection(ALL_FILE_LIST);
-                            foreach (var a_file in temp_list) {
-                                a_file.index = parent_index + "_" + (i++);
-                                temp_index.Add(a_file.index);
-                                treeNode.Nodes.Add(FileToTreeNode(a_file));
-                            }
-                            my_file.elementIndex = temp_index;
-                        }
-                    }
-                    return treeNode;
-                }
-
-                /// <summary>
-                /// 文件转换为ListViewItem
-                /// </summary>
-                /// <param name="my_file"></param>
-                /// <returns></returns>
-                private ListViewItem FileToListViewItem(MyFile my_file) {
-                    ListViewItem result = new ListViewItem(new string[] { my_file.name, my_file.GetFileSize(), my_file.GetFileType(), my_file.timeOfLastAlter });
-                    result.Name = my_file.index;
-                    result.Tag = my_file.GetFileType();
-                    return result;
-                }
-
-                /// <summary>
-                /// 通过节点获取文件
-                /// </summary>
-                /// <param name="tree_node"></param>
-                /// <returns></returns>
-                private MyFile GetFileByTreeNode(TreeNode tree_node) {
-                    MyFile result = new MyFile();
-                    foreach (MyFile a_file in ALL_FILE_LIST) {
-                        if (a_file.index == tree_node.Name) {
-                            result = a_file;
-                        }
-                    }
-                    return result;
-                }
-
-                private MyFile GetFileByListViewItem(ListViewItem list_view_item) {
-                    var result = new MyFile();
-                    foreach (MyFile a_file in ALL_FILE_LIST) {
-                        if (a_file.index == list_view_item.Name) {
-                            result = a_file;
-                        }
-                    }
-                    return result;
-                }
-
-                /// <summary>
-                /// 获取新的索引号
-                /// </summary>
-                /// <param name="tree_node"></param>
-                /// <returns></returns>
-                private string GetNewIndex(TreeNode tree_node) {
-                    string result = "";
-                    string nodeIndex = tree_node.Name;
-                    result += nodeIndex;
-                    for (int i = 0; ; ++i) {
-                        bool had = false;
-                        foreach (TreeNode a_node in tree_node.Nodes) {
-                            string a_index = a_node.Name;
-                            int a_last_index = a_index.LastIndexOf("_");
-
-                            string a_head = a_index.Substring(0, a_last_index);
-                            string a_tail = a_index.Remove(0, a_head.Length + 1);
-                            if (i.ToString().Trim() == a_tail.Trim()) {
-                                had = true;
-                                break;
-                            }
-                        }
-                        if (!had) {
-                            result += "_" + i.ToString().Trim();
-                            break;
-                        }
-                    }
-                    return result;
-                }
-
-                /// <summary>
-                /// 获取一个新的文件名
-                /// </summary>
-                /// <param name="tree_node"></param>
-                /// <param name="is_folder"></param>
-                /// <returns></returns>
-                private string GetNewName(TreeNode tree_node, bool is_folder) {
-                    string result = "";
-                    if (is_folder) {
-                        result = "新建文件夹";
-                        for (int i = 1; ; ++i) {
-                            bool hadNew = false;
-                            bool had = false;
-                            foreach (TreeNode a_node in tree_node.Nodes) {
-                                string a_node_text = a_node.Text;
-                                if (a_node_text == result) {
-                                    hadNew = true;
-                                    a_node_text = result + "（0）";
-                                }
-                                int indexOfStart = a_node_text.LastIndexOf("（");
-                                int indexOfEnd = a_node_text.LastIndexOf("）");
-                                if (indexOfStart == -1 || indexOfEnd == -1) {
-                                    continue;
-                                }
-                                string a_num = a_node_text.Substring(indexOfStart + 1, indexOfEnd - indexOfStart - 1);
-                                if (i.ToString().Trim() == a_num.Trim()) {
-                                    had = true;
-                                    break;
-                                }
-                            }
-                            if (!hadNew) {
-                                return result;
-                            }
-                            if (!had) {
-                                result += "（" + i.ToString().Trim() + "）";
-                                return result;
-                            }
-                        }
-                    }
-                    else {
-                        result = "新建文本文档";
-                        for (int i = 1; ; ++i) {
-                            bool hadNew = false;
-                            bool had = false;
-                            foreach (TreeNode a_node in tree_node.Nodes) {
-                                string a_node_text = a_node.Text;
-                                if (a_node_text == result + ".txt") {
-                                    hadNew = true;
-                                    a_node_text = result + "（0）.txt";
-                                }
-                                int indexOfStart = a_node_text.LastIndexOf("（");
-                                int indexOfEnd = a_node_text.LastIndexOf("）");
-                                if (indexOfStart == -1 || indexOfEnd == -1) {
-                                    continue;
-                                }
-                                string a_num = a_node_text.Substring(indexOfStart + 1, indexOfEnd - indexOfStart - 1);
-                                if (i.ToString().Trim() == a_num.Trim()) {
-                                    had = true;
-                                    break;
-                                }
-                            }
-                            if (!hadNew) {
-                                return result + ".txt";
-                            }
-                            if (!had) {
-                                result += "（" + i.ToString().Trim() + "）" + ".txt";
-                                return result;
-                            }
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 通过唯一索引号查找文件
-                /// </summary>
-                /// <param name="index"></param>
-                /// <returns></returns>
-                private MyFile FindFileByIndex(string index) {
-                    var result = new MyFile();
-                    foreach(var a_file in ALL_FILE_LIST) {
-                        if(a_file.index == index) {
-                            return a_file;
-                        }
-                    }
-                    MessageBox.Show("未成功通过索引获取文件，系统错误！" + index);
-                    return result;
-                }
-
-                /// <summary>
-                /// 通过string list查找节点
-                /// </summary>
-                /// <param name="path_list"></param>
-                private void FindNodeByStringList(List<string> path_list) {
-                    TreeNode root = treeView1.Nodes.Find("root", false).First();
-                    if (root.Text != path_list[0]) {
-                        MessageBox.Show("错误的路径！");
-                        return;
-                    }
-                    if (path_list.Count == 1) {
-                        treeView1.SelectedNode = root;
-                    }
-                    TreeNode temp = root;
-                    for (int i = 0; i < path_list.Count; ++i) {
-                        bool has = true;
-                        foreach (TreeNode a_node in temp.Nodes) {
-                            string str = path_list[i];
-                            if (i == path_list.Count - 1 && a_node.Text == str) {
-                                treeView1.SelectedNode = a_node;
-                                return;
-                            }
-                            if (a_node.Text == str) {
-                                has = true;
-                                temp.Expand();
-                                temp = a_node;
-                            }
-                            if (!has) {
-                                MessageBox.Show("错误的路径！");
-                            }
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 查找父文件
-                /// </summary>
-                /// <param name="child_file"></param>
-                /// <returns></returns>
-                private MyFile FindParentFile(MyFile child_file) {
-                    var resule = new MyFile();
-                    foreach(var parent_file in ALL_FILE_LIST) {
-                        if (parent_file.isFolder) {
-                            foreach (var child_index in parent_file.elementIndex) {
-                                if (child_file.index == child_index) {
-                                    resule = parent_file;
-                                }
-                            }
-                        }
-                    }
-                    return resule;
-                }
-
-                /// <summary>
-                /// 在文件List里的索引值
-                /// </summary>
-                /// <param name="my_file"></param>
-                /// <returns></returns>
-                public static int IndexInFileList(MyFile my_file) {
-                    int result = 0;
-                    for (; result < ALL_FILE_LIST.Count; ++result) {
-                        if (ALL_FILE_LIST[result].index == my_file.index) {
-                            return result;
-                        }
-                    }
-                    return -1;
-                }
-
-                /// <summary>
-                /// 检测该文件夹中是否存在该名字
-                /// </summary>
-                /// <param name="new_name"></param>
-                /// <param name="parent_file"></param>
-                /// <returns></returns>
-                private bool CheckName(string new_name, MyFile parent_file) {
-                    var children_index = parent_file.elementIndex;
-                    foreach (var a_index in children_index) {
-                        foreach (var a_file in ALL_FILE_LIST) {
-                            if (a_file.index == a_index) {
-                                if (new_name == a_file.name) {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                    return true;
-                }
-
-                /// <summary>
-                /// 填充TreeList
-                /// </summary>
-                /// <param name="file_list"></param>
-                private void FillTreeView() {
-                    treeView1.Nodes.Clear();
-                    foreach (MyFile a_file in ALL_FILE_LIST) {
-                        if (a_file.index == "root") {
-                            treeView1.Nodes.Add(FileToTreeNode(a_file));
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 填充ListView
-                /// </summary>
-                /// <param name="tree_node"></param>
-                private void FillListView() {
-                    listView1.Items.Clear();
-                    MyFile selectedFile = GetFileByTreeNode(SELECT_NODE);
-                    if (selectedFile.elementIndex.Count > 0) {
-                        foreach (MyFile a_file in selectedFile.GetElementCollection(ALL_FILE_LIST)) {
-                            ListViewItem a_item = FileToListViewItem(a_file);
-                            listView1.Items.Add(a_item);
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 恢复展开
-                /// </summary>
-                private void Expand() {
-                    TreeNode root = treeView1.Nodes.Find("root", false).First();
-                    ExpandedSupport(root);
-                }
-
-                /// <summary>
-                /// 恢复展开 - 支持函数
-                /// </summary>
-                /// <param name="root"></param>
-                private void ExpandedSupport(TreeNode root) {
-                    if (root.Nodes.Count > 0) {
-                        foreach (string a_index in ALL_EXPANDED_LIST) {
-                            if (root.Name == a_index) {
-                                root.Expand();
-                            }
-                        }
-                        foreach (TreeNode a_node in root.Nodes) {
-                            ExpandedSupport(a_node);
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 记录展开
-                /// </summary>
-                private void Sign() {
-                    TreeNode root = treeView1.Nodes.Find("root", false).First();
-                    SignSupport(root);
-                }
-
-                /// <summary>
-                /// 记录展开 - 支持函数
-                /// </summary>
-                /// <param name="root"></param>
-                private void SignSupport(TreeNode root) {
-                    if (root.Nodes.Count > 0) {
-                        if (root.IsExpanded) {
-                            string index = root.Name;
-                            ALL_EXPANDED_LIST.Add(index);
-                        }
-                        foreach (TreeNode a_node in root.Nodes) {
-                            SignSupport(a_node);
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// 界面刷新
-                /// </summary>
-                private void RefreshForm() {
-                    Sign();
-                    FillTreeView();
-                    Expand();
-                    FillListView();
-                }
-
-                /// <summary>
-                /// 显示路径
-                /// </summary>
-                private void ShowPath() {
-                    textBox1.Text = SELECT_NODE.FullPath;
-                }
-
-                /// <summary>
-                /// 通过路径选择文件
-                /// </summary>
-                /// <param name="path"></param>
-                private void PathToSelect(string path) {
-                    FindNodeByStringList(PathToStringList(path));
-                }
-
-                /// <summary>
-                /// 文件路径转换成string list
-                /// </summary>
-                /// <param name="path"></param>
-                /// <returns></returns>
-                private List<string> PathToStringList(string path) {
-                    List<string> result = new List<string>();
-                    string temp = path;
-                    do {
-                        int a_index = temp.IndexOf("\\");
-                        if (a_index == -1) {
-                            result.Add(temp);
-                            break;
-                        }
-                        string str = temp.Substring(0, a_index);
-                        temp = temp.Substring(str.Length + 1, temp.Length - str.Length - 1);
-                        result.Add(str);
-                    } while (true);
-                    return result;
-                }
-
-                /// <summary>
-                /// 更新某个文件
-                /// </summary>
-                /// <param name="old_file"></param>
-                /// <param name="new_file"></param>
-                public static void UpdateFile(MyFile old_file, MyFile new_file) {
-                    ALL_FILE_LIST[IndexInFileList(old_file)] = new_file;
-                }
-
-                /// <summary>
-                /// 打开文本文件
-                /// </summary>
-                /// <param name="my_file"></param>
-                private void OpenTextFile(MyFile my_file) {
-                    if (!my_file.isFolder) {
-                        Form text = new 文本文档(my_file);
-                        text.Show();
-                    }
-                    else {
-                        MessageBox.Show("打开错误！");
-                    }
-                }
-
-                /// <summary>
-                /// 打开文件夹
-                /// </summary>
-                /// <param name="my_file"></param>
-                private void OpenFolder(MyFile my_file) {
-                    if (my_file.isFolder) {
-                        treeView1.SelectedNode = treeView1.Nodes.Find(my_file.index, true)[0];
-                    }
-                    else {
-                        MessageBox.Show("打开错误！");
-                    }
-                }
-
-                /// <summary>
-                /// 删除文件
-                /// </summary>
-                /// <param name="my_file"></param>
-                private void DeleteFile(MyFile my_file) {
-                    MyFile tempFile = new MyFile();
-                    my_file.CopyTo(out tempFile);
-                    if (tempFile.isFolder) {
-                        foreach(var a_index in tempFile.elementIndex) {
-                            DeleteFile(FindFileByIndex(a_index));
-                        }
-                    }
-                    var parent = FindParentFile(my_file);
-                    for (int i = 0; i < parent.elementIndex.Count; ++i) {
-                        if(parent.elementIndex[i] == my_file.index) {
-                            ALL_FILE_LIST[IndexInFileList(parent)].elementIndex.RemoveAt(i);
-                            break;
-                        }
-                    }
-                    ALL_FILE_LIST.RemoveAt(IndexInFileList(my_file));
-                    RefreshForm();
-                }
-        */
-
+    public partial class Form1 : Form, IMainForm {
 
         private ISystemController sysCtrl;
 
-
-
         public Form1() {
             InitializeComponent();
-            sysCtrl = SystemController.GetInstance();
 
-            //ALL_FILE_LIST.RemoveAt(1);
-            //WriteBinFile(FILE_NAME, ALL_FILE_LIST);
+            //单例模式---------------------------
+            sysCtrl = SystemController.GetInstance();
+            //----------------------------------
+
         }
 
 
@@ -600,6 +83,8 @@ namespace File_System {
                 if (temp != null) {
                     IFile file = sysCtrl.GetFileByListViewItem(temp);
                     sysCtrl.OpenFile(file);
+                    //sysCtrl.GetHistoryPath().Push(sysCtrl.GetSelectedNode().FullPath);
+                    sysCtrl.GetFuturePath().Clear();
                 }
             }
         }
@@ -618,7 +103,7 @@ namespace File_System {
             //else {
             //    MessageBox.Show("没有可返回的路径！");
             //}
-            if (sysCtrl.GetHistoryPath().Count > 1) {
+            if (sysCtrl.GetHistoryPath().Count > 0) {
                 sysCtrl.GetFuturePath().Push(sysCtrl.GetHistoryPath().Pop());
                 string hisPath = sysCtrl.GetHistoryPath().Pop();
                 sysCtrl.PathToSelect(hisPath);
@@ -656,6 +141,9 @@ namespace File_System {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void listView1_AfterLabelEdit(object sender, LabelEditEventArgs e) {
+            if (sysCtrl.GetMainForm().GetListView().SelectedItems.Count == 0) {
+                return;
+            }
             var file = sysCtrl.GetFileByListViewItem(sysCtrl.GetMainForm().GetListView().SelectedItems[0]);
             var temp = file;
             var oldName = file.GetName();
@@ -665,7 +153,8 @@ namespace File_System {
                     MessageBox.Show("文件名不能为空！");
                 }
                 else {
-                    if (sysCtrl.CheckName(newName, sysCtrl.FindParentFile(file))) {
+                    IFile pFile = sysCtrl.FindParentFile(file);
+                    if (sysCtrl.CheckName(newName, pFile)) {
                         //temp.name = newName;
                         //UpdateFile(file, temp);
                         temp.SetName(newName);
@@ -702,8 +191,8 @@ namespace File_System {
                 if (selectedFile.GetFileType() == FileType.Folder) {
                     IFile new_folder = new FolderFile(sysCtrl.GetNewName(sysCtrl.GetSelectedNode(), FileType.Folder));
                     selectedFile.Add(new_folder);
-                    sysCtrl.GetAllFileList().Add(new_folder);
                     sysCtrl.RefreshForm();
+                    //sysCtrl.SetSelectedNode(treeView1.SelectedNode);
                 }
             }
         }
@@ -725,9 +214,8 @@ namespace File_System {
             if (sysCtrl.GetSelectedNode() != null) {
                 IFile selectedFile = sysCtrl.GetFileByTreeNode(sysCtrl.GetSelectedNode());
                 if (selectedFile.GetFileType() == FileType.Folder) {
-                    IFile new_text = new FolderFile(sysCtrl.GetNewName(sysCtrl.GetSelectedNode(), FileType.Text));
+                    IFile new_text = new TextFile(sysCtrl.GetNewName(sysCtrl.GetSelectedNode(), FileType.Text));
                     selectedFile.Add(new_text);
-                    sysCtrl.GetAllFileList().Add(new_text);
                     sysCtrl.RefreshForm();
                 }
             }
@@ -834,11 +322,12 @@ namespace File_System {
                         }
                     }
                 }
-                IFile new_file = a_file.DeepCopy();
-                new_file.SetIndex();
+                //------原型模式-------
+                IFile new_file = a_file.DeepCopy();     //深度复制该文件
+                new_file.SetNewIndex();                 //设置新的GUID以区别旧文件
+                //--------------------
                 sysCtrl.GetSelectedNode().Nodes.Add(sysCtrl.FileToTreeNode(new_file));
                 sysCtrl.GetFileByTreeNode(sysCtrl.GetSelectedNode()).GetFileList().Add(new_file);
-                sysCtrl.GetAllFileList().Add(new_file);
             }
             sysCtrl.RefreshForm();
         }
@@ -898,6 +387,10 @@ namespace File_System {
 
         public Form ToForm() {
             return this;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
+
         }
     }
 }

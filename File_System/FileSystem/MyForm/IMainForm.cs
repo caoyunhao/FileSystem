@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace File_System.FileSystem.MyForm {
-    public interface IForm {
+    public interface IMainForm {
         TreeView GetTreeView();
 
         ListView GetListView();

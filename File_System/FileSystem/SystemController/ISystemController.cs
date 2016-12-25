@@ -12,6 +12,9 @@ using System.Windows.Forms;
 
 namespace File_System.FileSystem.SystemController {
     public interface ISystemController {
+
+        void Init();
+
         void ReadBinFile();
 
         void WriteBinFile();
@@ -70,11 +73,11 @@ namespace File_System.FileSystem.SystemController {
 
         void CreateTree();
 
-        void Run(IForm form);
+        void Run(IMainForm form);
 
-        void SetMainForm(IForm form);
+        void SetMainForm(IMainForm form);
 
-        void SetTextForm(IForm form);
+        void SetTextForm(ITextForm form);
 
         IFile GetFileByListViewItem(ListViewItem list_view_item);
 
@@ -92,8 +95,10 @@ namespace File_System.FileSystem.SystemController {
 
         void Exit();
 
-        IForm GetMainForm();
+        IMainForm GetMainForm();
 
         IFileList GetClipBoard();
+
+        void SetClipBoard(IFileList fileList);
     }
 }

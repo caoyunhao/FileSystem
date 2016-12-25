@@ -364,6 +364,7 @@
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "文件资源管理器";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);

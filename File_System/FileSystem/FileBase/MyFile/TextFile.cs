@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace File_System.FileSystem.FileBase.MyFile {
+    [Serializable]
     public class TextFile : File {
 
         public TextFile(string name = "") {
@@ -47,8 +48,15 @@ namespace File_System.FileSystem.FileBase.MyFile {
         }
 
         public override void SetContent(string content) {
-            this.content = content;
+            if(content != this.content) {
+                this.content = content;
+                timeOfLastAlter = DateTime.Now.ToString();
+            }
         }
+
+        //public override void Open() {
+        //    throw new NotImplementedException();
+        //}
 
         //public override IFile DeepCopy() {
         //    IFile retval;

@@ -1,4 +1,5 @@
-﻿using File_System.FileSystem.SystemController;
+﻿using File_System.FileSystem.MyForm;
+using File_System.FileSystem.SystemController;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +17,17 @@ namespace File_System {
             Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new Form1());
 
-            SystemController sysCtrl = SystemController.GetInstance();
-            sysCtrl.ReadBinFile();
+            ISystemController sysCtrl = SystemController.GetInstance();
+
+            IMainForm mainForm = new Form1();
+            ITextForm textForm = new Form2();
+
+            sysCtrl.SetMainForm(mainForm);
+            sysCtrl.SetTextForm(textForm);
+
+            sysCtrl.Init();
+
+            sysCtrl.Run(mainForm);
 
         }
     }

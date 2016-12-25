@@ -55,7 +55,8 @@
     <Compile Include="FileSystem\FileBase\MyFile\TextFile.cs" />
     <Compile Include="FileSystem\FileBase\MyPathList\IPathList.cs" />
     <Compile Include="FileSystem\FileBase\MyPathList\PathList.cs" />
-    <Compile Include="FileSystem\MyForm\IForm.cs" />
+    <Compile Include="FileSystem\MyForm\IMainForm.cs" />
+    <Compile Include="FileSystem\MyForm\ITextForm.cs" />
     <Compile Include="FileSystem\MyIterator\FileIterator.cs" />
     <Compile Include="FileSystem\MyIterator\Iterator.cs" />
     <Compile Include="FileSystem\MyIterator\PathIterator.cs" />
@@ -69,12 +70,11 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MyFile.cs" />
-    <Compile Include="FileSystem\MyForm\文本文档.cs">
+    <Compile Include="FileSystem\MyForm\Form2.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FileSystem\MyForm\文本文档.Designer.cs">
-      <DependentUpon>文本文档.cs</DependentUpon>
+    <Compile Include="FileSystem\MyForm\Form2.Designer.cs">
+      <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="FileSystem\MyForm\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
@@ -88,8 +88,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="FileSystem\MyForm\文本文档.resx">
-      <DependentUpon>文本文档.cs</DependentUpon>
+    <EmbeddedResource Include="FileSystem\MyForm\Form2.resx">
+      <DependentUpon>Form2.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

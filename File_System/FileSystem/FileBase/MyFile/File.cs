@@ -24,14 +24,18 @@ namespace File_System.FileSystem.FileBase.MyFile {
         /// <summary>
         /// 文件创建时间
         /// </summary>
-        public string timeOfCreate;
+        protected string timeOfCreate;
 
         /// <summary>
         /// 文件最后一次修改时间
         /// </summary>
-        public string timeOfLastAlter;
+        protected string timeOfLastAlter;
 
-        protected File() { }
+        protected File() {
+            index = Guid.NewGuid().ToString();
+            timeOfCreate = DateTime.Now.ToString();
+            timeOfLastAlter = timeOfCreate;
+        }
 
         public string GetName() {
             return name;
@@ -45,7 +49,7 @@ namespace File_System.FileSystem.FileBase.MyFile {
             return index;
         }
 
-        public void SetIndex() {
+        public void SetNewIndex() {
             index = Guid.NewGuid().ToString();
         }
 
@@ -86,5 +90,6 @@ namespace File_System.FileSystem.FileBase.MyFile {
         public abstract string GetFileSize();
 
         public abstract string ShowFileType();
+        //public abstract void Open();
     }
 }

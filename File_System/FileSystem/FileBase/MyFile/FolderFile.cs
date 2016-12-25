@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace File_System.FileSystem.FileBase.MyFile {
+    [Serializable]
     public class FolderFile : File {
 
         public FolderFile(string name = "") {

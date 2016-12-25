@@ -16,12 +16,9 @@ namespace File_System.FileSystem.SystemController {
     public class SystemController : ISystemController {
         private static SystemController systemController = new SystemController();
 
-        private IFileList ALL_FILE_LIST;
-
-        private IForm mainForm;
-        private IForm textForm;
-
-
+        private IFile ROOT;
+        private IMainForm mainForm;
+        private ITextForm textForm;
 
         /// <summary>
         /// 全部文件List
@@ -30,7 +27,7 @@ namespace File_System.FileSystem.SystemController {
         /// <summary>
         /// 被选择的树节点
         /// </summary>
-        private TreeNode SELECTED_NODE = new TreeNode();
+        private TreeNode SELECTED_NODE;
         /// <summary>
         /// 被展开的节点List
         /// </summary>
@@ -46,7 +43,7 @@ namespace File_System.FileSystem.SystemController {
         /// <summary>
         /// 粘贴板
         /// </summary>
-        private IFileList CLIPBOARD;
+        private IFileList CLIPBOARD = new FileList();
 
 
         private SystemController() {
@@ -58,16 +55,23 @@ namespace File_System.FileSystem.SystemController {
         }
 
 
-        public IFileList GetAllFileList() {
-            return ALL_FILE_LIST;
-        }
+        //public IFileList GetAllFileList() {
+        //    return GetAllFileList();
+        //}
 
         public void SetSelectedNode(TreeNode tree_node) {
+            if (tree_node == null) {
+                return;
+            }
             SELECTED_NODE = tree_node;
         }
 
         public TreeNode GetSelectedNode() {
-            return SELECTED_NODE;
+            if(SELECTED_NODE == null) {
+                return null;
+            }
+            TreeNode selectedNode = mainForm.GetTreeView().Nodes.Find(SELECTED_NODE.Name, true).First();
+            return selectedNode;
         }
 
         public Stack<string> GetHistoryPath() {
@@ -81,51 +85,83 @@ namespace File_System.FileSystem.SystemController {
             return CLIPBOARD;
         }
 
+        public void SetClipBoard(IFileList fileList) {
+            CLIPBOARD = fileList;
+        }
 
 
+        public void Init() {
+            ReadBinFile();
+            if (GetAllFileList().GetSize() == 0) {
+                IFile root = new FolderFile("我的电脑");
+                ROOT = root;
+            }
+            FillTreeView();
+            SELECTED_NODE = mainForm.GetTreeView().Nodes.Find(ROOT.GetIndex(), false)[0];
 
-
+        }
 
         public void ReadBinFile() {
-            ALL_FILE_LIST = new FileList();
-            BinaryFormatter bf = new BinaryFormatter();
-            Stream st = new FileStream(FILE_NAME, FileMode.Open);
-            do {
-                if (st.Position == st.Length)
-                    break;
-                IFile my_file = bf.Deserialize(st) as IFile;
-                ALL_FILE_LIST.Add(my_file);
-                continue;
-            } while (true);
-            st.Close();
+            //GetAllFileList() = new FileList();
+            //BinaryFormatter bf = new BinaryFormatter();
+            //Stream st = new FileStream(FILE_NAME, FileMode.Open);
+            //do {
+            //    if (st.Position == st.Length)
+            //        break;
+            //    IFile my_file = bf.Deserialize(st) as FileBase.MyFile.File;
+            //    GetAllFileList().Add(my_file);
+            //    continue;
+            //} while (true);
+            //st.Close();
+            //return;
+            //using (MemoryStream ms = new MemoryStream()) {
+            //    BinaryFormatter bf = new BinaryFormatter();
+            //    bf.Serialize(ms, this);
+            //    ms.Seek(0, SeekOrigin.Begin);
+            //    retval = bf.Deserialize(ms) as IFile;
+            //    ms.Close();
+            //}
+
+            using (Stream st = new FileStream(FILE_NAME, FileMode.Open)) {
+                BinaryFormatter bf = new BinaryFormatter();
+                do {
+                    if (st.Position == st.Length)
+                        break;
+                    ROOT = bf.Deserialize(st) as FolderFile;
+                    continue;
+                } while (true);
+                st.Close();
+            }
             return;
         }
 
         public void WriteBinFile() {
-            BinaryFormatter bf = new BinaryFormatter();
-            Stream st = new FileStream(FILE_NAME, FileMode.Create, FileAccess.Write, FileShare.None);
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
-            while (iterator.HasNext()) {
-                IFile a_file = (IFile)iterator.Next();
-                bf.Serialize(st, a_file);
+            using(Stream st = new FileStream(FILE_NAME, FileMode.Create, FileAccess.Write, FileShare.None)) {
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(st, ROOT);
+                //Iterator iterator = GetAllFileList().ToIterator();
+                //while (iterator.HasNext()) {
+                //    IFile a_file = (IFile)iterator.Next();
+                //    bf.Serialize(st, a_file);
+                //}
+                st.Close();
             }
-            st.Close();
         }
 
         public void CreateTree() {
             Console.WriteLine("Creat Tree success");
         }
 
-        public void Run(IForm form) {
-            Console.WriteLine("启动界面");
+        public void Run(IMainForm form) {
+            Application.Run(form.ToForm());
         }
 
-        public void SetMainForm(IForm form) {
+        public void SetMainForm(IMainForm form) {
             mainForm = form;
         }
 
-        public void SetTextForm(IForm form) {
-
+        public void SetTextForm(ITextForm form) {
+            textForm = form;
         }
 
         public TreeNode FileToTreeNode(IFile my_file) {
@@ -145,13 +181,15 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public ListViewItem FileToListViewItem(IFile my_file) {
+            string strname = my_file.ShowFileType();
             ListViewItem result = new ListViewItem(new string[] { my_file.GetName(), my_file.GetFileSize(), my_file.ShowFileType(), my_file.GetTimeOfLastAlter() });
+            result.Name = my_file.GetIndex();
             result.Tag = my_file.GetFileType();
             return result;
         }
 
         public IFile GetFileByTreeNode(TreeNode tree_node) {
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
+            Iterator iterator = GetAllFileList().ToIterator();
             while (iterator.HasNext()) {
                 IFile a_file = (IFile)iterator.Next();
                 if (a_file.GetIndex() == tree_node.Name && a_file.GetFileType() == FileType.Folder) {
@@ -162,7 +200,7 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public IFile GetFileByListViewItem(ListViewItem list_view_item) {
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
+            Iterator iterator = GetAllFileList().ToIterator();
             while (iterator.HasNext()) {
                 IFile a_file = (IFile)iterator.Next();
                 if (a_file.GetIndex() == list_view_item.Name) {
@@ -172,41 +210,39 @@ namespace File_System.FileSystem.SystemController {
             return null;
         }
 
-        public string GetNewName(TreeNode tree_node, FileType fileType) {
-            string result = "新建" + MyType.TypeToString(fileType);
-            string suffix = MyType.SuffixOfType(fileType);
-            for (int i = 1; ; ++i) {
-                bool hadNew = false;
-                bool had = false;
-                foreach (TreeNode a_node in tree_node.Nodes) {
-                    string a_node_text = a_node.Text;
-                    if (a_node_text == (result + suffix)) {
-                        hadNew = true;
-                        a_node_text = result + "（0）";
+        public string GetNewName(TreeNode tree_node, FileType file_type) {
+            string prefix = "新建";
+            string typeName = MyType.TypeToString(file_type);
+            string suffix = MyType.SuffixOfType(file_type);//包含"."
+            bool hasNew = false;
+
+            foreach (TreeNode a_node in tree_node.Nodes) {
+                if (a_node.Text == prefix + typeName + suffix) {
+                    hasNew = true;
+                }
+            }
+
+            if (hasNew) {
+                for (int i = 1; ; ++i) {
+                    bool has = false;
+                    string newName = prefix + typeName + "（" + i + "）" + suffix;
+                    foreach (TreeNode a_node in tree_node.Nodes) {
+                        if (a_node.Text == newName) {
+                            has = true;
+                        }
                     }
-                    int indexOfStart = a_node_text.LastIndexOf("（");
-                    int indexOfEnd = a_node_text.LastIndexOf("）");
-                    if (indexOfStart == -1 || indexOfEnd == -1) {
-                        continue;
-                    }
-                    string a_num = a_node_text.Substring(indexOfStart + 1, indexOfEnd - indexOfStart - 1);
-                    if (i.ToString().Trim() == a_num.Trim()) {
-                        had = true;
-                        break;
+                    if (!has) {
+                        return newName;
                     }
                 }
-                if (!hadNew) {
-                    return result + suffix;
-                }
-                if (!had) {
-                    result += "（" + i.ToString().Trim() + "）" + suffix;
-                    return result;
-                }
+            }
+            else {
+                return prefix + typeName + suffix;
             }
         }
 
         public IFile FindFileByIndex(string index) {
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
+            Iterator iterator = GetAllFileList().ToIterator();
             while (iterator.HasNext()) {
                 IFile a_file = (IFile)iterator.Next();
                 if (a_file.GetIndex() == index) {
@@ -218,7 +254,7 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public void FindNodeByStringList(IPathList path_list) {
-            TreeNode root = mainForm.GetTreeView().Nodes.Find("root", false).First();
+            TreeNode root = mainForm.GetTreeView().Nodes.Find(ROOT.GetIndex(), false).First();
             Iterator iterator = path_list.ToIterator();
             if (root.Text != (string)iterator.Next()) {
                 MessageBox.Show("错误的路径！");
@@ -251,7 +287,7 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public IFile FindParentFile(IFile child_file) {
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
+            Iterator iterator = GetAllFileList().ToIterator();
             while (iterator.HasNext()) {
                 var parent_file = (IFile)iterator.Next();
                 if (parent_file.GetFileType() == FileType.Folder) {
@@ -269,15 +305,12 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public bool CheckName(string new_name, IFile parent_file) {
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
             Iterator iterator1 = parent_file.GetFileList().ToIterator();
             while (iterator1.HasNext()) {
                 var a_file1 = (IFile)iterator1.Next();
-                while (iterator.HasNext()) {
-                    var a_file = (IFile)iterator.Next();
-                    if(a_file.GetName() == a_file1.GetName()) {
-                        return false;
-                    }
+                if (a_file1.GetName() == new_name) {
+                    MessageBox.Show("重复命名！");
+                    return false;
                 }
             }
             return true;
@@ -285,10 +318,10 @@ namespace File_System.FileSystem.SystemController {
 
         public void FillTreeView() {
             mainForm.GetTreeView().Nodes.Clear();
-            Iterator iterator = ALL_FILE_LIST.ToIterator();
+            Iterator iterator = GetAllFileList().ToIterator();
             while (iterator.HasNext()) {
                 var a_file = (IFile)iterator.Next();
-                if (a_file.GetIndex() == "root") {
+                if (a_file.GetIndex() == ROOT.GetIndex()) {
                     mainForm.GetTreeView().Nodes.Add(FileToTreeNode(a_file));
                 }
             }
@@ -296,19 +329,21 @@ namespace File_System.FileSystem.SystemController {
 
         public void FillListView() {
             mainForm.GetListView().Items.Clear();
-            IFile selectedFile = GetFileByTreeNode(SELECTED_NODE);
-            if (selectedFile.GetFileType() == FileType.Folder) {
-                Iterator iterator = selectedFile.GetFileList().ToIterator();
-                while (iterator.HasNext()) {
-                    var a_file = (IFile)iterator.Next();
-                    ListViewItem a_item = FileToListViewItem(a_file);
-                    mainForm.GetListView().Items.Add(a_item);
+            IFile selectedFile = GetFileByTreeNode(GetSelectedNode());
+            if (selectedFile != null) {
+                if (selectedFile.GetFileType() == FileType.Folder) {
+                    Iterator iterator = selectedFile.GetFileList().ToIterator();
+                    while (iterator.HasNext()) {
+                        var a_file = (IFile)iterator.Next();
+                        ListViewItem a_item = FileToListViewItem(a_file);
+                        mainForm.GetListView().Items.Add(a_item);
+                    }
                 }
             }
         }
 
         public void Expand() {
-            TreeNode root = mainForm.GetTreeView().Nodes.Find("root", false).First();
+            TreeNode root = mainForm.GetTreeView().Nodes.Find(ROOT.GetIndex(), false).First();
             ExpandedSupport(root);
         }
 
@@ -326,7 +361,7 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public void Sign() {
-            TreeNode root = mainForm.GetTreeView().Nodes.Find("root", false).First();
+            TreeNode root = mainForm.GetTreeView().Nodes.Find(ROOT.GetIndex(), false).First();
             SignSupport(root);
         }
 
@@ -358,7 +393,7 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public IPathList PathToList(string path) {
-           IPathList result = new PathList();
+            IPathList result = new PathList();
             string temp = path;
             do {
                 int a_index = temp.IndexOf("\\");
@@ -374,13 +409,22 @@ namespace File_System.FileSystem.SystemController {
         }
 
         public void OpenFile(IFile file) {
-
+            FileType fileType = file.GetFileType();
+            switch (fileType) {
+                case FileType.Folder:
+                    OpenFolder(file); break;
+                case FileType.Text:
+                    OpenTextFile(file);break;
+                default:
+                    break;
+            }
         }
 
         public void OpenTextFile(IFile my_file) {
             if (my_file.GetFileType() == FileType.Text) {
-                //Form text = new 文本文档(my_file);
-                //text.Show();
+                ITextForm new_TextForm = new Form2();
+                new_TextForm.SetTextFile(my_file);
+                new_TextForm.ShowTextForm();
             }
             else {
                 MessageBox.Show("打开错误！");
@@ -399,7 +443,6 @@ namespace File_System.FileSystem.SystemController {
         public void DeleteFile(IFile my_file) {
             IFile temp = FindParentFile(my_file);
             temp.GetFileList().Remove(my_file);
-            ALL_FILE_LIST.Remove(my_file);
             RefreshForm();
         }
 
@@ -407,9 +450,28 @@ namespace File_System.FileSystem.SystemController {
             Application.Exit();
         }
 
-        public IForm GetMainForm() {
+        public IMainForm GetMainForm() {
             return mainForm;
         }
 
+        public IFileList GetAllFileList() {
+            IFileList All_FILE_LIST = new FileList();
+            AddFile(ROOT, All_FILE_LIST);
+            return All_FILE_LIST;
+        }
+
+        private void AddFile(IFile file, IFileList fileList) {
+            if (file == null || fileList == null) {
+                return;
+            }   
+            fileList.Add(file);
+            if(file.GetFileType() == FileType.Folder) {
+                Iterator iterator = file.GetFileList().ToIterator();
+                while (iterator.HasNext()) {
+                    var a_file = (IFile)iterator.Next();
+                    AddFile(a_file, fileList);
+                }
+            }
+        }
     }
 }

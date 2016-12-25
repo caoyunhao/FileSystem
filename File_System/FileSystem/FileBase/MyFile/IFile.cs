@@ -26,7 +26,7 @@ namespace File_System.FileSystem.FileBase.MyFile {
 
         string GetIndex();
 
-        void SetIndex();
+        void SetNewIndex();
         /// <summary>
         /// 获取文件内容
         /// </summary>
@@ -45,5 +45,7 @@ namespace File_System.FileSystem.FileBase.MyFile {
         string GetTimeOfLastAlter();
 
         IFile DeepCopy();
+
+        //void Open();
     }
 }

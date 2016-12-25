@@ -8,24 +8,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using File_System.FileSystem.MyForm;
+using File_System.FileSystem.SystemController;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace File_System {
-    public partial class 文本文档 : Form {
-
+    [Serializable]
+    public partial class Form2 : Form, ITextForm {
+        private ISystemController sysCtrl;
         private IFile MY_FILE;
         private bool MY_CLOSE = false;
         private bool HAS_CHANGED = false;
-        private string OLD_CONTANT = "";
 
-        public 文本文档() {
+        public Form2() {
             InitializeComponent();
         }
 
-        public 文本文档(IFile my_file) {
+        public Form2(IFile my_file) {
             InitializeComponent();
-            MY_FILE = my_file;
+            SetTextFile(my_file);
+        }
+
+        public void Init() {
             textBox1.Text = MY_FILE.GetContent();
-            OLD_CONTANT = textBox1.Text;
             this.Text = MY_FILE.GetName() + " - 文本文档";
             textBox1.Select(0, 0);
         }
@@ -37,7 +43,7 @@ namespace File_System {
         }
 
         private void 文本文档_FormClosing(object sender, FormClosingEventArgs e) {
-            if (OLD_CONTANT == textBox1.Text) {
+            if (MY_FILE.GetContent() == textBox1.Text) {
                 HAS_CHANGED = false;
             }
             else {
@@ -61,6 +67,34 @@ namespace File_System {
                     }
                 }
             }
+            //------------单例模式-------------
+            sysCtrl = SystemController.GetInstance();
+            sysCtrl.FillListView();
+        }
+
+        public TextBox GetTextBox() {
+            return textBox1;
+        }
+
+        public void ShowTextForm() {
+            this.Show();
+        }
+
+        public void SetTextFile(IFile file) {
+            MY_FILE = file;
+            Init();
+        }
+
+        public ITextForm DeepCopy() {
+            ITextForm retval;
+            using (MemoryStream ms = new MemoryStream()) {
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(ms, this);
+                ms.Seek(0, SeekOrigin.Begin);
+                retval = bf.Deserialize(ms) as ITextForm;
+                ms.Close();
+            }
+            return retval as ITextForm;
         }
     }
 }

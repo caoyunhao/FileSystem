@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace File_System.FileSystem.FileBase.MyFileList {
+    [Serializable]
     public class FileList : IFileList {
 
         private List<IFile> fileList;
